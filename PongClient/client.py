@@ -42,6 +42,7 @@ def main():
             print(recived.decode(constants.ENCONDING_FORMAT))
 
             to_send = input()
+    
     client_socket.send(bytes(to_send,constants.ENCONDING_FORMAT))
 
     recived = client_socket.recv(constants.RECV_BUFFER_SIZE)
