@@ -8,6 +8,24 @@
 #include <pthread.h>
 #include <unistd.h>
 
+void function(int connection_fd){
+    char buff[n];
+    int n;
+    while (1) 
+    {
+        bzero(buff,n);
+
+        char remote[] = read(connection_fd,buff,sizeof(buff));
+
+        char commanLine[] = *strtok(remote, ' ');
+
+        char command = commanLine[0];
+
+        /*if (command == 'hello'){
+            send(connection_fd, buff, );
+        }*/
+    }
+}
 
 void main(){
     int socket_fd, connection_fd, len;

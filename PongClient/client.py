@@ -5,14 +5,14 @@ client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 def main():
     print('client')
-    client_socket.connect(("127.0.0.1",constants.PORT))#falta port
+    client_socket.connect(("127.0.0.1",constants.PORT))
     local = client_socket.getsockname()
 
     print("Coneted from: ", local)
 
     to_send = input() # aqui se podria crear un arreglo con la informacion
 
-    while to_send != constants.QUIT: #Recordar hacer las constantes
+    while to_send != constants.QUIT: 
         if to_send == '':
 
             print("Invalid comand")
@@ -51,6 +51,7 @@ def main():
 
     to_send = input()
 
+    client_socket.close()
 
 if __name__ == '__main__':
     main()
