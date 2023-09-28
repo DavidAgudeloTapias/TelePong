@@ -9,8 +9,8 @@
 #include <unistd.h>
 
 void function(int connection_fd){
-    char buff[n];
     int n;
+    char buff[n];
     while (1) 
     {
         bzero(buff,n);

@@ -14,6 +14,8 @@ BLACK= (0,0,0)
 PADDLE_HEIGHT, PADDLE_WIDTH = 100, 20
 BALL_RADIUS = 7
 
+SCORE_FONT = pygame.font.SysFont("comicsans", 50)
+
 # This class will let us create both paddles of the gamers
 class Paddle:
     COLOR = WHITE
@@ -40,8 +42,8 @@ class Ball:
     COLOR = WHITE
 
     def __init__(self, x, y, radius):
-        self.x = x
-        self.y = y
+        self.x = self.original_x = x
+        self.y = self.original_y = y
         self.radius = radius
         self.x_vel = self.MAX_VEL
         self.y_vel = 0
@@ -53,8 +55,21 @@ class Ball:
         self.x += self.x_vel
         self.y += self.y_vel
 
-def draw(win, paddles, ball):
+    def reset(self):
+        self.x = self.original_x
+        self.y = self.original_y
+        self.y_vel = 0
+        self.x_vel *= -1
+
+
+# This method is the one that draw everything in the game window
+def draw(win, paddles, ball, leftScore, rightScore):
     win.fill(BLACK)
+
+    leftScoreText = SCORE_FONT.render(f"{leftScore}", 1, WHITE)
+    rightScoreText = SCORE_FONT.render(f"{rightScore}", 1, WHITE)
+    win.blit(leftScoreText, (WIDTH//4 - leftScoreText.get_width()//2, 20))
+    win.blit(rightScoreText, (WIDTH * (3/4) - rightScoreText.get_width()//2, 20))
 
     for paddle in paddles: # Take both paddles to draw them in the window
         paddle.draw(win)
@@ -68,7 +83,36 @@ def draw(win, paddles, ball):
     pygame.display.update() # Update constantly the display to the color
 
 
-# Function that receive the keys that are pressed to make both paddles to move
+# This method
+def handle_collision(ball, leftPaddle, rightPaddle):
+    if ball.y + ball.radius >= HEIGHT:
+        ball.y_vel *= -1
+    elif ball.y - ball.radius <= 0:
+        ball.y_vel *= -1
+
+    if ball.x_vel < 0:
+        if ball.y >= leftPaddle.y and ball.y <= leftPaddle.y + leftPaddle.height:
+            if ball.x - ball.radius <= leftPaddle.x + leftPaddle.width:
+                ball.x_vel *= -1
+
+                middle_y = leftPaddle.y + leftPaddle.height/2
+                difference_in_y = middle_y - ball.y
+                reduction_factor = (leftPaddle.height / 2) / ball.MAX_VEL
+                y_vel = difference_in_y / reduction_factor
+                ball.y_vel = -1 * y_vel
+    else:
+        if ball.y >= rightPaddle.y and ball.y <= rightPaddle.y + rightPaddle.height:
+            if ball.x + ball.radius >= rightPaddle.x:
+                ball.x_vel *= -1
+
+                middle_y = rightPaddle.y + rightPaddle.height/2
+                difference_in_y = middle_y - ball.y
+                reduction_factor = (rightPaddle.height / 2) / ball.MAX_VEL
+                y_vel = difference_in_y / reduction_factor
+                ball.y_vel = -1 * y_vel
+
+
+# Method that receive the keys that are pressed to make both paddles to move
 def handle_paddle_movement(keys, leftPaddle, rightPaddle):
     if keys[pygame.K_w] and leftPaddle.y - leftPaddle.VEL >= 0:
         leftPaddle.move(up=True)
@@ -92,9 +136,12 @@ def main():
 
     ball = Ball(WIDTH//2, HEIGHT//2, BALL_RADIUS)
 
+    leftScore = 0
+    rightScore = 0
+
     while run:
         clock.tick(FPS) # Maximum ticks or frames per second that the screen will show
-        draw(WIN, [leftPaddle, rightPaddle], ball)
+        draw(WIN, [leftPaddle, rightPaddle], ball, leftScore, rightScore)
         for event in pygame.event.get():
             if event.type == pygame.QUIT: # If you press close button ...
                 run = False
@@ -104,6 +151,15 @@ def main():
         handle_paddle_movement(keys, leftPaddle, rightPaddle)
 
         ball.move()
+
+        handle_collision(ball, leftPaddle, rightPaddle)
+        
+        if ball.x < 0:
+            rightScore += 1
+            ball.reset()
+        elif ball.x > WIDTH:
+            leftScore += 1
+            ball.reset()
 
     pygame.quit()
 
