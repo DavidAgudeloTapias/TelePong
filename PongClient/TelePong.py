@@ -1,7 +1,7 @@
 import pygame
-import threading
-import socket
 import constants
+import protocol
+import threading
 
 pygame.init() # Initialize the things we gonna need
 pygame.display.set_caption("Pong")
@@ -81,36 +81,32 @@ def escucharMensajeServidor(socketCliente):
     global leftScore
     global rightScore
     while True:
-        data, _ = socketCliente.recvfrom(constants.BUFFER_SIZE)
-        if data:
-            data = data.decode()
-            if data == "START":
-                comenzarJuego = True
-                print("Los 2 jugadores ahora pueden jugar")
-                continue
+        data = protocol.escucharMensajeJuego(socketCliente)
+        if data == "START":
+            comenzarJuego = True
+            print("Los 2 jugadores ahora pueden jugar")
+        else:
             data = data.split()
             ball.x, ball.y, leftPaddle.y, rightPaddle.y, leftScore, rightScore = map(int, data)
 
             print(f"BolaDirX: {ball.x} - BolaDirY: {ball.y} - PaletaIzqDirY: {leftPaddle.y} - PaletaIzqDirY: {rightPaddle.y} - MarcadorIzq: {leftScore} - MarcadorDer: {rightScore}")
-            
-            if not run:
-                break
-            actualizarPosicionesPantalla()
+
+        if not run:
+            break
+        actualizarPosicionesPantalla()
 
 
 def mostrarMensaje(mensaje, y_offset = 0):
-    text_surface = SCORE_FONT.render(mensaje, True, constants.WHITE)
-    text_rect = text_surface.get_rect(center=(350, 250 + y_offset))
-    WIN.blit(text_surface, text_rect)
+    superficieTexto = SCORE_FONT.render(mensaje, True, constants.WHITE)
+    rectanguloTexto = superficieTexto.get_rect(center=(350, 250 + y_offset))
+    WIN.blit(superficieTexto, rectanguloTexto)
     pygame.display.update()
 
 
 # Event or main loop that display the window and draw something on it
 def main():
     # Socket of each player is being created
-    socketCliente = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    socketCliente.sendto("CONNECT".encode(), (constants.SERVER_IP, constants.SERVER_PORT))
-    print("Conectado al servidor")
+    socketCliente = protocol.createSocket()
 
     # Thread of each pair of players is being created
     hiloJuego = threading.Thread(target=escucharMensajeServidor, args=(socketCliente,))
@@ -120,7 +116,7 @@ def main():
     WIN.fill(constants.BLACK)
     mostrarMensaje("Bienvenido a Pong", -20)
     mostrarMensaje("Esperando por otro jugador", 20)
-    
+
     while not comenzarJuego:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -151,7 +147,7 @@ def main():
                 if event.key == pygame.K_w or event.key == pygame.K_s:
                     current_movement = "0"
 
-        socketCliente.sendto(current_movement.encode(), (constants.SERVER_IP, constants.SERVER_PORT))
+        protocol.sendToServer(socketCliente, current_movement)
 
         pygame.display.flip()
         clock.tick(constants.FPS)
@@ -167,7 +163,7 @@ def main():
         pygame.display.update()
 
     pygame.quit()
-    socketCliente.close()
+    protocol.closeSocket(socketCliente)
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,5 @@
 # Constants for the sockets
-SERVER_IP = '3.92.225.134'
+SERVER_IP = '3.87.28.72'
 SERVER_PORT = 8080
 BUFFER_SIZE = 1024
 

@@ -28,7 +28,7 @@ void moveBall(Ball *ball)
     ball->y += ball->y_vel;
 }
 
-void reset(Ball *ball)
+void resetBall(Ball *ball)
 {
     ball->x = 350;
     ball->y = 250;
@@ -36,16 +36,16 @@ void reset(Ball *ball)
     ball->y_vel = 0;
 }
 
-void bounce(Ball *ball)
+void score(Ball *ball)
 {
     if (ball->x < 0)
     {
-        reset(ball);
+        resetBall(ball);
         ball->puntuacion_2 += 1;
     }
     if (ball->x >= 700)
     {
-        reset(ball);
+        resetBall(ball);
         ball->puntuacion_1 += 1;
     }
 }
@@ -218,7 +218,7 @@ void *handle_game(void *arg)
             }
 
             moveBall(&ball);
-            bounce(&ball);
+            score(&ball);
             movePaddle(&leftPaddle);
             movePaddle(&rightPaddle);
             handle_collision(&ball, &leftPaddle, &rightPaddle);
