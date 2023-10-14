@@ -1,9 +1,15 @@
-# Constants....
+# Constants for the sockets
+SERVER_IP = '3.92.225.134'
+SERVER_PORT = 8080
+BUFFER_SIZE = 1024
 
-PORT = 9090
-ENCONDING_FORMAT = "utf-8"
-RECV_BUFFER_SIZE = 2048
-IP_SERVER = '127.0.0.1' #Poner el IP de la instancia de AWS
-HELO = 'HELO'
-DATA = 'DATA'
-QUIT = 'QUIT'
+# Constants for the game
+WIDTH, HEIGHT = 700, 500
+
+FPS = 60
+
+WHITE = (255,255,255)
+BLACK= (0,0,0)
+
+PADDLE_HEIGHT, PADDLE_WIDTH = 100, 20
+BALL_RADIUS = 7

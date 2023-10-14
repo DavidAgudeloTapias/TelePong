@@ -1,191 +1,173 @@
 import pygame
-pygame.init() # Initialize the things we gonna need
+import threading
+import socket
+import constants
 
-# Variables being in uppercase are considered constants that will not change
-WIDTH, HEIGHT = 700, 500
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.init() # Initialize the things we gonna need
 pygame.display.set_caption("Pong")
 
-FPS = 60
-
-WHITE = (255,255,255)
-BLACK= (0,0,0)
-
-PADDLE_HEIGHT, PADDLE_WIDTH = 100, 20
-BALL_RADIUS = 7
+WIN = pygame.display.set_mode((constants.WIDTH, constants.HEIGHT))
 
 SCORE_FONT = pygame.font.SysFont("comicsans", 50)
 WINNING_SCORE = 3
 
+comenzarJuego = False # Flag to know if both players are conected
+run = True # Flag to let the game to run
+leftScore = 0
+rightScore = 0
+
 # This class will let us create both paddles of the gamers
 class Paddle:
-    COLOR = WHITE
+    COLOR = constants.WHITE
     VEL = 4
 
-    def __init__(self, x, y, widht, height):
-        self.x = self.original_x = x
-        self.y = self.original_y = y
-        self.width = widht
-        self.height = height
+    def __init__(self):
+        self.x = self.original_x = 0
+        self.y = self.original_y = constants.HEIGHT//2 - constants.PADDLE_HEIGHT//2
+        self.width = constants.PADDLE_WIDTH
+        self.height = constants.PADDLE_HEIGHT
 
-    def draw(self, win):
+    def drawing(self, win):
         pygame.draw.rect(win, self.COLOR, (self.x, self.y, self.width, self.height))
 
-    def move(self, up=True):
-        if up:
-            self.y -= self.VEL
-        else:
-            self.y += self.VEL
-
-    def reset(self):
-        self.x = self.original_x
-        self.y = self.original_y
 
 # This class will let us create the ball
 class Ball:
     MAX_VEL = 5
-    COLOR = WHITE
+    COLOR = constants.WHITE
 
-    def __init__(self, x, y, radius):
-        self.x = self.original_x = x
-        self.y = self.original_y = y
-        self.radius = radius
+    def __init__(self):
+        self.x = 350
+        self.y = 250
+        self.radius = constants.BALL_RADIUS
         self.x_vel = self.MAX_VEL
         self.y_vel = 0
 
-    def draw(self, win):
+    def drawing(self, win):
         pygame.draw.circle(win, self.COLOR, (self.x, self.y), self.radius)
 
-    def move(self):
-        self.x += self.x_vel
-        self.y += self.y_vel
 
-    def reset(self):
-        self.x = self.original_x
-        self.y = self.original_y
-        self.y_vel = 0
-        self.x_vel *= -1
+# Create both paddles and the ball this way, to access them in the necessary methods
+
+leftPaddle = Paddle()
+leftPaddle.x = 10
+rightPaddle = Paddle()
+rightPaddle.x = constants.WIDTH - 10 - constants.PADDLE_WIDTH
+ball = Ball()
 
 
-# This method is the one that draw everything in the game window
-def draw(win, paddles, ball, leftScore, rightScore):
-    win.fill(BLACK)
+def actualizarPosicionesPantalla():
+    WIN.fill(constants.BLACK)
 
-    leftScoreText = SCORE_FONT.render(f"{leftScore}", 1, WHITE)
-    rightScoreText = SCORE_FONT.render(f"{rightScore}", 1, WHITE)
-    win.blit(leftScoreText, (WIDTH//4 - leftScoreText.get_width()//2, 20))
-    win.blit(rightScoreText, (WIDTH * (3/4) - rightScoreText.get_width()//2, 20))
+    leftScoreText = SCORE_FONT.render(f"{leftScore}", 1, constants.WHITE)
+    rightScoreText = SCORE_FONT.render(f"{rightScore}", 1, constants.WHITE)
+    WIN.blit(leftScoreText, (constants.WIDTH//4 - leftScoreText.get_width()//2, 20))
+    WIN.blit(rightScoreText, (constants.WIDTH * (3/4) - rightScoreText.get_width()//2, 20))
 
-    for paddle in paddles: # Take both paddles to draw them in the window
-        paddle.draw(win)
+    leftPaddle.drawing(WIN)
+    rightPaddle.drawing(WIN)
+    ball.drawing(WIN)
 
-    for i in range(10, HEIGHT, HEIGHT//20):
+    for i in range(10, constants.HEIGHT, constants.HEIGHT//20):
         if i%2 == 1:
             continue
-        pygame.draw.rect(win, WHITE, (WIDTH//2 - 5, i, 10, HEIGHT//20))
+        pygame.draw.rect(WIN, constants.WHITE, (constants.WIDTH//2 - 5, i, 10, constants.HEIGHT//20))
 
-    ball.draw(win)
     pygame.display.update() # Update constantly the display to the color
 
 
-# This method
-def handle_collision(ball, leftPaddle, rightPaddle):
-    if ball.y + ball.radius >= HEIGHT:
-        ball.y_vel *= -1
-    elif ball.y - ball.radius <= 0:
-        ball.y_vel *= -1
+def escucharMensajeServidor(socketCliente):
+    global comenzarJuego
+    global leftScore
+    global rightScore
+    while True:
+        data, _ = socketCliente.recvfrom(constants.BUFFER_SIZE)
+        if data:
+            data = data.decode()
+            if data == "START":
+                comenzarJuego = True
+                print("Los 2 jugadores ahora pueden jugar")
+                continue
+            data = data.split()
+            ball.x, ball.y, leftPaddle.y, rightPaddle.y, leftScore, rightScore = map(int, data)
 
-    if ball.x_vel < 0:
-        if ball.y >= leftPaddle.y and ball.y <= leftPaddle.y + leftPaddle.height:
-            if ball.x - ball.radius <= leftPaddle.x + leftPaddle.width:
-                ball.x_vel *= -1
-
-                middle_y = leftPaddle.y + leftPaddle.height/2
-                difference_in_y = middle_y - ball.y
-                reduction_factor = (leftPaddle.height / 2) / ball.MAX_VEL
-                y_vel = difference_in_y / reduction_factor
-                ball.y_vel = -1 * y_vel
-    else:
-        if ball.y >= rightPaddle.y and ball.y <= rightPaddle.y + rightPaddle.height:
-            if ball.x + ball.radius >= rightPaddle.x:
-                ball.x_vel *= -1
-
-                middle_y = rightPaddle.y + rightPaddle.height/2
-                difference_in_y = middle_y - ball.y
-                reduction_factor = (rightPaddle.height / 2) / ball.MAX_VEL
-                y_vel = difference_in_y / reduction_factor
-                ball.y_vel = -1 * y_vel
+            print(f"BolaDirX: {ball.x} - BolaDirY: {ball.y} - PaletaIzqDirY: {leftPaddle.y} - PaletaIzqDirY: {rightPaddle.y} - MarcadorIzq: {leftScore} - MarcadorDer: {rightScore}")
+            
+            if not run:
+                break
+            actualizarPosicionesPantalla()
 
 
-# Method that receive the keys that are pressed to make both paddles to move
-def handle_paddle_movement(keys, leftPaddle, rightPaddle):
-    if keys[pygame.K_w] and leftPaddle.y - leftPaddle.VEL >= 0:
-        leftPaddle.move(up=True)
-    if keys[pygame.K_s] and leftPaddle.y + leftPaddle.VEL + leftPaddle.height <= HEIGHT:
-        leftPaddle.move(up=False)
-
-    if keys[pygame.K_UP] and rightPaddle.y - rightPaddle.VEL >= 0:
-        rightPaddle.move(up=True)
-    if keys[pygame.K_DOWN] and rightPaddle.y + rightPaddle.VEL + rightPaddle.height <= HEIGHT:
-        rightPaddle.move(up=False)
+def mostrarMensaje(mensaje, y_offset = 0):
+    text_surface = SCORE_FONT.render(mensaje, True, constants.WHITE)
+    text_rect = text_surface.get_rect(center=(350, 250 + y_offset))
+    WIN.blit(text_surface, text_rect)
+    pygame.display.update()
 
 
 # Event or main loop that display the window and draw something on it
 def main():
-    run = True # Flag to let the game to run
+    # Socket of each player is being created
+    socketCliente = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    socketCliente.sendto("CONNECT".encode(), (constants.SERVER_IP, constants.SERVER_PORT))
+    print("Conectado al servidor")
 
+    # Thread of each pair of players is being created
+    hiloJuego = threading.Thread(target=escucharMensajeServidor, args=(socketCliente,))
+    hiloJuego.daemon = True
+    hiloJuego.start()
+
+    WIN.fill(constants.BLACK)
+    mostrarMensaje("Bienvenido a Pong", -20)
+    mostrarMensaje("Esperando por otro jugador", 20)
+    
+    while not comenzarJuego:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+
+    global run
     clock = pygame.time.Clock()
-
-    leftPaddle = Paddle(10, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
-    rightPaddle = Paddle(WIDTH - 10 - PADDLE_WIDTH, HEIGHT//2 - PADDLE_HEIGHT//2, PADDLE_WIDTH, PADDLE_HEIGHT)
-
-    ball = Ball(WIDTH//2, HEIGHT//2, BALL_RADIUS)
-
-    leftScore = 0
-    rightScore = 0
+    current_movement = "0"
 
     while run:
-        clock.tick(FPS) # Maximum ticks or frames per second that the screen will show
-        draw(WIN, [leftPaddle, rightPaddle], ball, leftScore, rightScore)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: # If you press close button ...
-                run = False
-                break
-
-        keys = pygame.key.get_pressed()
-        handle_paddle_movement(keys, leftPaddle, rightPaddle)
-
-        ball.move()
-
-        handle_collision(ball, leftPaddle, rightPaddle)
+        actualizarPosicionesPantalla()
         
-        if ball.x < 0:
-            rightScore += 1
-            ball.reset()
-        elif ball.x > WIDTH:
-            leftScore += 1
-            ball.reset()
+        if leftScore == 3 or rightScore == 3:
+            run = False
 
-        won = False
-        if leftScore >= WINNING_SCORE:
-            won = True
-            win_text = "El ganador de la Izquierda ha ganado el juego"
-        elif rightScore >= WINNING_SCORE:
-            won = True
-            win_text = "El ganador de la Derecha ha ganado el juego"
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_w:
+                    current_movement = "-4"
+                if event.key == pygame.K_s:
+                    current_movement = "4"
 
-        if won:
-            text = SCORE_FONT.render(win_text, 1, WHITE)
-            WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
-            pygame.display.update()
-            pygame.time.delay(5000)
-            ball.reset()
-            leftPaddle.reset()
-            rightPaddle.reset()
-            leftScore = 0
-            rightScore = 0
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_w or event.key == pygame.K_s:
+                    current_movement = "0"
+
+        socketCliente.sendto(current_movement.encode(), (constants.SERVER_IP, constants.SERVER_PORT))
+
+        pygame.display.flip()
+        clock.tick(constants.FPS)
+
+    WIN.fill(constants.BLACK)
+    if leftScore == 3:
+        mostrarMensaje("Jugador izquierda gana", -20)
+        pygame.time.wait(3000)
+        pygame.display.update()
+    else:
+        mostrarMensaje("Jugador derecha gana", -20)
+        pygame.time.wait(3000)
+        pygame.display.update()
 
     pygame.quit()
+    socketCliente.close()
 
 if __name__ == '__main__':
     main()
