@@ -17,8 +17,7 @@ Finalmente, con la unión de todos los factores anteriormente mencionados, se lo
 ## Desarrollo
 [![Diagrama de Procesos](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Procesos%20TelePong.png "Diagrama de Procesos")](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Procesos%20TelePong.png "Diagrama de Procesos")
 
-[![Diagrama de Arquitectura](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Arquitectura%20TelePong%20DMP.png "Diagrama de Arquitectura")](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Arquitectura%20TelePong%20DMP.png "Diagrama de Arquitectura")
+[![Diagrama de Arquitectura](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Arquitectura%20TelePong.png "Diagrama de Arquitectura")](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Arquitectura%20TelePong.png "Diagrama de Arquitectura")
 ## Conclusiones
 
 ## Referencias
-
