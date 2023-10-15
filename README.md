@@ -15,7 +15,9 @@ Para su realización, al ser muy necesario tener en cuenta el intercambio de inf
 Finalmente, con la unión de todos los factores anteriormente mencionados, se logra que la aplicación y proyecto TelePong, logre las metas iniciales de crear una aplicación que se comunique por la red de manera eficiente y no se limite a una sola conexión.
 
 ## Desarrollo
+[![Diagrama de Procesos](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Procesos%20TelePong.png "Diagrama de Procesos")](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Procesos%20TelePong.png "Diagrama de Procesos")
 
+[![Diagrama de Arquitectura](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Arquitectura%20TelePong%20DMP.png "Diagrama de Arquitectura")](https://github.com/DavidAgudeloTapias/TelePong/blob/main/Diagramas/Diagrama%20de%20Arquitectura%20TelePong%20DMP.png "Diagrama de Arquitectura")
 ## Conclusiones
 
 ## Referencias
