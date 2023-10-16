@@ -1,6 +1,10 @@
 # TelePong
 
 ------------
+#### Trabajo realizado por:
+- David Agudelo Tapias
+- María José González Peláez
+- Pablo Micolta
 
 ### Tabla de contenidos
   * [Introducción](#introducci-n)
